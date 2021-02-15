@@ -5,36 +5,35 @@ namespace core;
 use controllers\HomeController;
 
 class Core {
-  
+
   public function run() {
     $request = filter_input(INPUT_GET, "request") ?? "Home/index";
+    $path = explode("/", $request);
     
-    if($request) {
-      $path = explode("/", $request);
-      $url = ["classController" => "Home", "method" => "index"]; 
+    [$classController, $method] = array_map(
+      fn($original, $default) => !empty($original) ? $original : $default,
+      $path,
+      ["Home", "index"]
+    );
+    $params = array_slice($path, 2);
 
-      if(!empty($path[0]))
-        $url["classController"] = ucfirst($path[0]."Controller");
+    $classController = $this->formatControllerClass($classController);
+    $controller = $this->createController($classController);
+    $method = method_exists($controller, $method) ? $method : "index";
 
-      if(!empty($path[1]))
-        $url["method"] = $path[1];
+    call_user_func_array([$controller, $method], $params);
+  }
+  private function createController(string $classController): Controller {
+    return $this->controllerExists($classController) ? new $classController : new ErrorController;
+  }
 
-      if(!empty($path[2]))
-        $url["params"] = $path[2];
+  private function controllerExists(string $classController) {
+    $file = str_replace("\\", "/", __DIR__ . "\\..\\{$classController}.php");
+    return file_exists($file);
+  }
 
-      extract($url);
-
-      $pathDir = "controllers/{$classController}.php";
-      $verify = !file_exists($pathDir) || !method_exists($classController, $method);
-
-      if($verify) {
-        $classController = "HomeController";
-        $method = "index";
-      }
-
-      $controller = new $classController;
-      call_user_func_array(array($controller, $method));
-
-    }
+  private function formatControllerClass(string $classController): string {
+    $classController = ucfirst($classController);
+    return "controllers\\{$classController}Controller";
   }
 }
