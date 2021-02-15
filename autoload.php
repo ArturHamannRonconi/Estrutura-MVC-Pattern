@@ -1,7 +1,7 @@
 <?php
 
 spl_autoload_register(function($class) {
-  $baseDir = __DIR__."/";
+  $baseDir = str_replace("\\", "/", __DIR__)."/";
   $file = str_replace("\\", "/", $class);
   $file = "{$baseDir}{$file}.php";
 

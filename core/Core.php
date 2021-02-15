@@ -2,6 +2,8 @@
 
 namespace core;
 
+use controllers\HomeController;
+
 class Core {
   
   public function run() {
@@ -23,7 +25,7 @@ class Core {
       extract($url);
 
       $pathDir = "controllers/{$classController}.php";
-      $verify = !file_exists($pathDir) || method_exists($classController, $method);
+      $verify = !file_exists($pathDir) || !method_exists($classController, $method);
 
       if($verify) {
         $classController = "HomeController";
